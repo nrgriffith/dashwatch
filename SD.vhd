@@ -36,14 +36,12 @@ signal store : std_logic_vector (15 downto 0);
 
 begin
 	 
-    compare: process(pps100, load, reset)
+    compare: process(clk, pps100, load, reset)
 	 begin
 	     if(reset = '1') then
 	         store <= "1001100110011001";
-	     elsif(pps100'event and pps100 = '1') then
-	         if(load = '1') then
-		          store <= D;
-			   end if;
+	     elsif(clk'event and clk = '1' and pps100 = '1' and load = '1') then
+            store <= D;
 	     end if;
 	     sdout <= store;
 	 end process;

@@ -33,8 +33,8 @@ entity CU is
           entm   : out   std_logic; 
           lsr    : out   std_logic; 
           rstm   : out   std_logic;
-			 update : out   std_logic;
-			 S      : out   std_logic_vector(3 downto 0)); -- State indication
+			 update : out   std_logic );
+			 --S      : out   std_logic_vector(3 downto 0)); 
 			 end CU;
 
 architecture BEHAVIORAL of CU is
@@ -49,20 +49,20 @@ begin
 	 -- The state number matches the state on the state machine diagram (Figure 6-26 in the textbook)
     -- Note to self: don't forget to do pin assignments for this, as it wasn't part of the lab
 	 
-    with pstate select S <= "0001" when S1,
-                            "0010" when S2,
-                            "0011" when S3,
-                            "0100" when S4,
-                            "0101" when S5,
-                            "0110" when S6,
-                            "0111" when S7,
-                            "1111" when others; -- error
+    --with pstate select S <= "0001" when S1,
+    --                        "0010" when S2,
+    --                        "0011" when S3,
+    --                        "0100" when S4,
+    --                        "0101" when S5,
+    --                        "0110" when S6,
+    --                        "0111" when S7,
+    --                        "1111" when others; -- error
 									 
-    state_flow: process(pps100, reset)
+    state_flow: process(clk, pps100, reset)
 	 begin
-	     if (reset = '0') then
+	     if (reset = '1') then
 		      pstate <= S1;
-		  elsif (pps100'event and pps100 = '1') then
+		  elsif (clk'event and clk='1' and pps100 = '1') then
 		      pstate <= nstate;
 		  end if;
 	 end process;
@@ -87,7 +87,7 @@ begin
 			   when S4 =>
 				    if(css = '1') then
 					     nstate <= S5;
-					 elsif(start = '1') then
+					 elsif(css = '0' and start = '1') then
 					     nstate <= S2;
 					 else
 					     nstate <= S4;
@@ -120,24 +120,48 @@ begin
 	     case pstate is
 		      when S1 =>
 					 update <= '0'; -- resets SD to 99.99
-			   when S2 =>
-				    rstm <= '1';   -- reset TM to 00.00
+				    lsr <= '1';
 					 ds <= '0';
-					 update <= '1'; -- SD multiplexer back to number
+					 entm <= '0';
+					 rstm <= '0';
+			   when S2 =>
+				    rstm <= '1';
+			       lsr <= '0';		 -- reset TM to 00.00
+					 update <= '0';
+					 ds <= '0';
+					 entm <= '0';
+					 --update <= '1'; -- SD multiplexer back to number
 				when S3 =>
 				    rstm <= '0';   -- do not reset TM
 				    entm <= '1';   -- increment TM
 					 ds <= '0';     -- display TM
+					 lsr <= '0';
+					 update <= '0';
 				when S4 =>
-				    entm <= '0';   -- do not increment TM
+				    --entm <= '0';   -- do not increment TM
 				    ds <= '0';     -- display TM
+					 update <= '0';
+					 rstm <= '0';
+					 entm <= '0';
+					 lsr <= '0';
 				when S5 =>
+				    lsr <='0';
+					 entm <='0';
+					 update <= '0';
+					 rstm <= '0';
 				    ds <= '0';
 				when S6 =>
+				    update <= '1';
 				    lsr <= '1';    -- load TM into SD
+					 ds <= '0';
+					 entm <= '0';
+					 rstm <= '0';
 				when S7 =>
 				    lsr <= '0';    -- turn load TM into SD off
 					 ds <= '1';     -- display SD
+					 entm <= '0';
+					 rstm <= '0';
+					 update <= '0';
 		  end case;
 	 end process;
 

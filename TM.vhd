@@ -31,22 +31,35 @@ end TM;
 
 architecture BEHAVIORAL of TM is
 
-signal cnt : std_logic_vector(15 downto 0);
+signal cnt0,cnt1,cnt2,cnt3 : std_logic_vector(3 downto 0);
 
 begin
 
-    count: process(pps100, srst)
+    count: process(clk, pps100, srst)
 	 begin
 	     if(srst = '1') then
-		      cnt <= "0000000000000000";
-        elsif(pps100'event and pps100 = '1' and cen = '1') then
-		      if (cnt < "1001100110011001") then
-				    cnt <= cnt + "0000000000000001";
-				else
-				    cnt <= "0000000000000000";
-				end if;
+		      cnt0 <= "0000";
+				cnt1 <= "0000";
+				cnt2 <= "0000";
+				cnt3 <= "0000";
+        elsif(clk'event and clk='1' and pps100 = '1' and cen = '1') then
+		      if (cnt0 < "1001") then
+				    cnt0 <= cnt0 + "0001";
+			   elsif (cnt1 < "1001") then
+				    cnt0 <= "0000";
+					 cnt1 <= cnt1 + "0001";
+			   elsif (cnt2 < "1001") then
+				    cnt0 <= "0000";
+					 cnt1 <= "0000";
+					 cnt2 <= cnt2 + "0001";
+				elsif (cnt3 < "1001") then
+				    cnt0 <= "0000";
+					 cnt1 <= "0000";
+					 cnt2 <= "0000";
+					 cnt3 <= cnt3 + "0001";
+			   end if;
         end if;
-		  tmout <= cnt;
+		  tmout <= cnt3 & cnt2 & cnt1 & cnt0;
 	 end process;
 
 end BEHAVIORAL;
